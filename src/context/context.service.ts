@@ -1,6 +1,7 @@
 import { Injectable, OnModuleInit, Logger } from '@nestjs/common';
-import { CellContext, TYPOLOGY_5_LABELS } from './context.types';
+import { CellContext, TYPOLOGY_5_LABELS, DatasetVersion } from './context.types';
 import * as fs from 'fs';
+import * as crypto from 'crypto';
 import * as path from 'path';
 import { parse } from 'csv-parse/sync';
 
@@ -8,6 +9,7 @@ import { parse } from 'csv-parse/sync';
 export class ContextService implements OnModuleInit {
   private readonly logger = new Logger(ContextService.name);
   private contextMap = new Map<number, CellContext>();
+  private datasetVersion: DatasetVersion;
 
   async onModuleInit() {
     await this.loadData();
@@ -26,9 +28,21 @@ export class ContextService implements OnModuleInit {
     }
 
     try {
+      // Compute deterministic hash of raw files
+      const clustersRaw = fs.readFileSync(clustersPath, 'utf-8');
+      const gridItemsRaw = fs.readFileSync(gridItemsPath, 'utf-8');
+
+      const hash = crypto.createHash('sha256');
+      hash.update(clustersRaw);
+      hash.update(gridItemsRaw);
+      const datasetHash = hash.digest('hex');
+      const buildDate = new Date().toISOString();
+
+      this.datasetVersion = { buildDate, datasetHash };
+      this.logger.log(`Dataset Version: ${datasetHash} (Built: ${buildDate})`);
+
       // 1. Load Clusters (Typologies & Habitat)
       // ID,mang_presence,salt_presence,seag_presence,cluster_5,hex_5,cluster_18,hex_18
-      const clustersRaw = fs.readFileSync(clustersPath, 'utf-8');
       const clustersData = parse(clustersRaw, {
         columns: true,
         skip_empty_lines: true,
@@ -37,7 +51,6 @@ export class ContextService implements OnModuleInit {
 
       // 2. Load Grid Items (Metadata)
       // "ID","TERRITORY1","ISO_TER1", ...
-      const gridItemsRaw = fs.readFileSync(gridItemsPath, 'utf-8');
       const gridItemsData = parse(gridItemsRaw, {
         columns: true,
         skip_empty_lines: true,
@@ -75,6 +88,7 @@ export class ContextService implements OnModuleInit {
             saltmarsh: Boolean(clusterRow.salt_presence),
             seagrass: Boolean(clusterRow.seag_presence),
           },
+          datasetVersion: this.datasetVersion,
         };
 
         this.contextMap.set(id, context);
@@ -91,5 +105,9 @@ export class ContextService implements OnModuleInit {
 
   async getCellContext(gridCellId: number): Promise<CellContext | null> {
     return this.contextMap.get(Number(gridCellId)) || null;
+  }
+
+  getDatasetVersion(): DatasetVersion {
+    return this.datasetVersion;
   }
 }

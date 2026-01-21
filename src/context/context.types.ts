@@ -11,6 +11,12 @@ export interface CellContext {
     saltmarsh: boolean;
     seagrass: boolean;
   };
+  datasetVersion?: DatasetVersion;
+}
+
+export interface DatasetVersion {
+  buildDate: string;
+  datasetHash: string;
 }
 
 export const TYPOLOGY_5_LABELS: Record<number, string> = {
@@ -20,5 +26,6 @@ export const TYPOLOGY_5_LABELS: Record<number, string> = {
   4: "Mixed Impacts / Low AGB",
   5: "Refuges",
 };
+
 
 

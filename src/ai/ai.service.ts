@@ -71,14 +71,19 @@ export class AiService {
 
       // Based on user provided frontend example using @google/genai SDK
       // Accessing .text property directly.
-      const text = typeof response.text === 'function' ? response.text() : response.text;
+      const responseText = typeof response.text === 'function' ? response.text() : response.text;
 
+      // Return the response with the authoritative context attached
       return {
-        text: text || "No response generated.",
+        text: responseText || "No response generated.",
         meta: {
           gridCellId: dto.gridCellId,
           model: this.modelName,
           reference: 'sievers-2021-only',
+        },
+        context: {
+          ...context,
+          datasetVersion: this.contextService.getDatasetVersion(),
         },
       };
     } catch (error) {
