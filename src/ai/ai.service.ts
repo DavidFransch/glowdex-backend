@@ -36,7 +36,19 @@ export class AiService {
 
     // 1. Get Context
     const context = await this.contextService.getCellContext(dto.gridCellId);
-    const typologyLabel = this.contextService.getTypologyLabel(context.clusterNumber);
+
+    if (!context) {
+      return {
+        text: 'Grid cell not found in scientific database.',
+        meta: {
+          gridCellId: dto.gridCellId,
+          model: this.modelName,
+          reference: 'none',
+        },
+      };
+    }
+
+    const typologyLabel = context.typologyLabel5;
 
     // 2. Build Prompt
     const prompt = buildPrompt(context, typologyLabel, dto.question);
