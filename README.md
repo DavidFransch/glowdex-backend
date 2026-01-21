@@ -137,3 +137,39 @@ POST /ai/summary
   "gridCellId": 20117,
   "question": "Optional user question"
 }
+```
+
+### Response (Success):
+
+```json
+{
+  "text": "This grid cell is classified as Typology 5...",
+  "meta": {
+    "gridCellId": 20117,
+    "model": "gemini-2.5-flash",
+    "reference": "sievers-2021-only"
+  },
+  "context": {
+    "id": 20117,
+    "typologyLabel5": "Refuges",
+    "typologyLabel18": "High Biodiversity Refuges",
+    "datasetVersion": {
+      "buildDate": "2026-01-21T09:35:27.784Z",
+      "datasetHash": "de9b0a69565f7427306b48a86b54573c96784e85a0ebe9b2f74ba9b8c4ab7308"
+    }
+  }
+}
+```
+
+### Project Structure
+
+```bash
+src/
+├── context/
+│   ├── context.service.ts   # CSV loading, joining, hashing
+│   └── context.types.ts     # Context and typology definitions
+└── ai/
+    ├── ai.service.ts        # AI orchestration
+    ├── ai.prompt.ts         # System instruction and grounding text
+    └── dto/                 # API request/response contracts
+```
