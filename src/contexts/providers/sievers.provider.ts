@@ -1,14 +1,14 @@
 import { Injectable, OnModuleInit, Logger } from '@nestjs/common';
-import { CellContext, TYPOLOGY_5_LABELS, DatasetVersion } from './context.types';
-import { ContextRegistryService } from '../contexts/context-registry.service';
+import { CellContext, TYPOLOGY_5_LABELS, DatasetVersion } from '../types';
+import { ContextRegistryService } from '../context-registry.service';
 import * as fs from 'fs';
 import * as crypto from 'crypto';
 import * as path from 'path';
 import { parse } from 'csv-parse/sync';
 
 @Injectable()
-export class ContextService implements OnModuleInit {
-  private readonly logger = new Logger(ContextService.name);
+export class SieversProvider implements OnModuleInit {
+  private readonly logger = new Logger(SieversProvider.name);
   private contextMap = new Map<number, CellContext>();
   private datasetVersion: DatasetVersion;
 
