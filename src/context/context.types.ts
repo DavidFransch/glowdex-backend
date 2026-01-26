@@ -27,5 +27,13 @@ export const TYPOLOGY_5_LABELS: Record<number, string> = {
   5: "Refuges",
 };
 
+// Partial labels derived from Sievers et al. (2021) case studies.
+export const TYPOLOGY_18_LABELS: Record<number, string> = {
+  4: "High Acceleration of Climate Impacts",
+  8: "High Biodiversity Refuges",
+  11: "Saltmarsh Refuges (Low Climate Accel.)",
+  12: "High Marine Impacts (Seagrass)",
+};
+
 
 

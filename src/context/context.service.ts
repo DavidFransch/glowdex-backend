@@ -1,5 +1,6 @@
 import { Injectable, OnModuleInit, Logger } from '@nestjs/common';
 import { CellContext, TYPOLOGY_5_LABELS, DatasetVersion } from './context.types';
+import { ContextRegistryService } from '../contexts/context-registry.service';
 import * as fs from 'fs';
 import * as crypto from 'crypto';
 import * as path from 'path';
@@ -10,6 +11,8 @@ export class ContextService implements OnModuleInit {
   private readonly logger = new Logger(ContextService.name);
   private contextMap = new Map<number, CellContext>();
   private datasetVersion: DatasetVersion;
+
+  constructor(private readonly contextRegistry: ContextRegistryService) { }
 
   async onModuleInit() {
     await this.loadData();
@@ -96,6 +99,23 @@ export class ContextService implements OnModuleInit {
       }
 
       this.logger.log(`Loaded ${count} grid cells into scientific context.`);
+
+      // Register as default scientific context
+      this.contextRegistry.register({
+        contextId: 'default',
+        description: 'Global Coastal Wetlands Index (Sievers et al., 2021)',
+        schemaType: 'sievers-2021',
+        data: this.contextMap,
+        version: this.datasetVersion,
+      });
+
+      this.contextRegistry.register({
+        contextId: 'sievers-2021',
+        description: 'Global Coastal Wetlands Index (Sievers et al., 2021)',
+        schemaType: 'sievers-2021',
+        data: this.contextMap,
+        version: this.datasetVersion,
+      });
 
     } catch (error) {
       this.logger.error('Failed to parse CSV data', error);

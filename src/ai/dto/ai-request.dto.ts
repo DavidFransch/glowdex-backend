@@ -7,4 +7,8 @@ export class AiRequestDto {
   @IsString()
   @IsOptional()
   question?: string;
+
+  @IsString()
+  @IsOptional()
+  contextId?: string;
 }

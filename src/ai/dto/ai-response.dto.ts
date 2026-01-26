@@ -4,6 +4,10 @@ export class AiResponseDto {
     gridCellId: number;
     model: string;
     reference: string;
+    contextId: string;
+    datasetVersion: string;
+    buildDate: string;
+    datasetHash: string;
   };
   context?: any; // Strictly typed in service, simplified here or use CellContext interface if reused
 }

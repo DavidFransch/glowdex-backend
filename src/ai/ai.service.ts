@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '../config/config.service';
-import { ContextService } from '../context/context.service';
+import { ContextRegistryService } from '../contexts/context-registry.service';
 import { AiRequestDto } from './dto/ai-request.dto';
 import { AiResponseDto } from './dto/ai-response.dto';
 import { GoogleGenAI } from '@google/genai';
@@ -14,7 +14,7 @@ export class AiService {
 
   constructor(
     private configService: ConfigService,
-    private contextService: ContextService,
+    private contextRegistry: ContextRegistryService,
   ) {
     const apiKey = this.configService.getGeminiApiKey();
     if (apiKey) {
@@ -23,27 +23,37 @@ export class AiService {
   }
 
   async generateSummary(dto: AiRequestDto): Promise<AiResponseDto> {
-    if (!this.genAI) {
+    const contextId = dto.contextId || 'default';
+    const registered = this.contextRegistry.get(contextId);
+
+    if (!registered) {
       return {
-        text: 'AI Service unavailable: Missing API Key',
+        text: `Context '${contextId}' not found.`,
         meta: {
           gridCellId: dto.gridCellId,
-          model: 'none',
+          model: this.modelName,
           reference: 'error',
+          contextId,
+          datasetVersion: 'unknown',
+          buildDate: 'unknown',
+          datasetHash: 'unknown'
         },
       };
     }
 
-    // 1. Get Context
-    const context = await this.contextService.getCellContext(dto.gridCellId);
+    const context = this.contextRegistry.getCellContext(contextId, dto.gridCellId);
 
     if (!context) {
       return {
-        text: 'Grid cell not found in scientific database.',
+        text: `Grid Cell ID ${dto.gridCellId} not found in context '${contextId}'.`,
         meta: {
           gridCellId: dto.gridCellId,
           model: this.modelName,
-          reference: 'none',
+          reference: 'error',
+          contextId,
+          datasetVersion: registered.version.datasetHash,
+          buildDate: registered.version.buildDate,
+          datasetHash: registered.version.datasetHash
         },
       };
     }
@@ -57,6 +67,10 @@ export class AiService {
       // 3. Call Gemini
       this.logger.log(`Using model: ${this.modelName}`);
       this.logger.debug(`Prompt payload: ${prompt.substring(0, 100)}...`);
+
+      if (!this.genAI) {
+        throw new Error('GenAI client not initialized');
+      }
 
       const response: any = await this.genAI.models.generateContent({
         model: this.modelName,
@@ -80,10 +94,14 @@ export class AiService {
           gridCellId: dto.gridCellId,
           model: this.modelName,
           reference: 'sievers-2021-only',
+          contextId: registered.contextId,
+          datasetVersion: registered.version.datasetHash,
+          buildDate: registered.version.buildDate,
+          datasetHash: registered.version.datasetHash,
         },
         context: {
           ...context,
-          datasetVersion: this.contextService.getDatasetVersion(),
+          datasetVersion: registered.version,
         },
       };
     } catch (error) {
@@ -94,6 +112,10 @@ export class AiService {
           gridCellId: dto.gridCellId,
           model: this.modelName,
           reference: 'error',
+          contextId,
+          datasetVersion: registered?.version?.datasetHash || 'unknown',
+          buildDate: registered?.version?.buildDate || 'unknown',
+          datasetHash: registered?.version?.datasetHash || 'unknown',
         },
       };
     }
