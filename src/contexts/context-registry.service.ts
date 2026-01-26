@@ -1,5 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { CellContext, DatasetVersion } from '../context/context.types';
+import { CellContext, DatasetVersion } from './types';
 
 export interface RegisteredContext {
   contextId: string;

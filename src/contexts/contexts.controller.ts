@@ -1,4 +1,5 @@
 import { Controller, Post, UseInterceptors, UploadedFile, Body, BadRequestException, Logger } from '@nestjs/common';
+import { ApiBody, ApiConsumes, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { ContextRegistryService } from './context-registry.service';
 import { UploadContextDto } from './dto/upload-context.dto';
@@ -6,8 +7,9 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as crypto from 'crypto';
 import { parse } from 'csv-parse/sync';
-import { CellContext, TYPOLOGY_5_LABELS, TYPOLOGY_18_LABELS } from '../context/context.types';
+import { CellContext, TYPOLOGY_5_LABELS, TYPOLOGY_18_LABELS } from './types';
 
+@ApiTags('Contexts')
 @Controller('contexts')
 export class ContextsController {
   private readonly logger = new Logger(ContextsController.name);
@@ -15,6 +17,15 @@ export class ContextsController {
   constructor(private readonly contextRegistry: ContextRegistryService) { }
 
   @Post('upload')
+  @ApiOperation({
+    summary: 'Upload Scientific Context (CSV)',
+    description: 'Upload a CSV dataset. Must contain an "ID" column. No inference or enrichment is performed.'
+  })
+  @ApiConsumes('multipart/form-data')
+  @ApiBody({
+    description: 'CSV file and metadata',
+    type: UploadContextDto,
+  })
   @UseInterceptors(FileInterceptor('file'))
   async uploadContext(
     @UploadedFile() file: any,

@@ -1,13 +1,43 @@
+import { ApiProperty } from '@nestjs/swagger';
+
+export class AiResponseMeta {
+  @ApiProperty()
+  gridCellId: number;
+
+  @ApiProperty()
+  model: string;
+
+  @ApiProperty()
+  reference: string;
+
+  @ApiProperty()
+  contextId: string;
+
+  @ApiProperty()
+  datasetVersion: string;
+
+  @ApiProperty()
+  buildDate: string;
+
+  @ApiProperty()
+  datasetHash: string;
+}
+
 export class AiResponseDto {
+  @ApiProperty({
+    description: 'The generated scientific summary text',
+  })
   text: string;
-  meta: {
-    gridCellId: number;
-    model: string;
-    reference: string;
-    contextId: string;
-    datasetVersion: string;
-    buildDate: string;
-    datasetHash: string;
-  };
-  context?: any; // Strictly typed in service, simplified here or use CellContext interface if reused
+
+  @ApiProperty({
+    description: 'Metadata about the generation request and model',
+    type: AiResponseMeta,
+  })
+  meta: AiResponseMeta;
+
+  @ApiProperty({
+    description: 'The raw scientific context used for generation',
+    required: false,
+  })
+  context?: any;
 }

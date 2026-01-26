@@ -1,4 +1,4 @@
-import { CellContext, TYPOLOGY_5_LABELS } from '../context/context.types';
+import { CellContext, TYPOLOGY_5_LABELS } from '../contexts/types';
 
 // Placeholder for the full Sievers et al. (2021) paper context.
 // In a real deployment, this would contain relevant excerpts from the paper.
